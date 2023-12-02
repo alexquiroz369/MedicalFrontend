@@ -90,7 +90,7 @@ const StyledLink = styled(Link)(({ theme }) => ({
     color: theme.palette.primary.main
   }
 }))
-{/** */}
+{/** */ }
 // ** renders client column
 const renderClient = (row: UsersType) => {
   if (row.hasOwnProperty("avatar")) {
@@ -178,7 +178,7 @@ const columns = [
     field: 'Nombre',
     headerName: 'Nombre',
     renderCell: ({ row }: CellType) => {
-      const { Nombre} = row
+      const { Nombre } = row
 
       return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -264,10 +264,10 @@ const columns = [
 
 const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) => {
   // ** State
-  
+
   const [patients, setPatients] = useState<UsersType[]>([]);
 
-  
+
   const [role, setRole] = useState<string>('')
   const [plan, setPlan] = useState<string>('')
   const [value, setValue] = useState<string>('')
@@ -278,18 +278,36 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.user)
+  const [filteredPatients, setFilteredPatients] = useState<UsersType[]>([]);
 
   useEffect(() => {
     // Fetch patient data from API
     const fetchPatients = async () => {
       const response = await fetch('http://localhost:3000/pacientes');
       const data: UsersType[] = await response.json();
-      console.log(data)
+      //console.log(data)
       setPatients(data);
     };
 
     fetchPatients();
   }, []);
+
+  useEffect(() => {
+    const filteredPatients = filterPatients(value, patients);
+    setFilteredPatients(filteredPatients);
+  }, [value, patients]);
+
+  const filterPatients = (searchValue: string, patients: UsersType[]): UsersType[] => {
+    if (!searchValue) {
+      return patients;
+    }
+
+    return patients.filter((patient) => {
+      return patient.Nombre.toLowerCase().includes(searchValue.toLowerCase());
+    });
+  };
+
+
 
   const handleFilter = useCallback((val: string) => {
     setValue(val)
@@ -393,21 +411,23 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
             </Grid>
           </CardContent>
           <Divider />
-          <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
-          
-          <DataGrid
-         
-            getRowId={(row) => row.ID_Paciente}
-            autoHeight
-            rows={patients}
-            columns={columns}
-            checkboxSelection
-            pageSize={pageSize}
-            disableSelectionOnClick
-            rowsPerPageOptions={[10, 25, 50]}
-            sx={{ '& .MuiDataGrid-columnHeaders': { borderRadius: 0 } }}
-            onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
-          />
+          <Grid item xs={12}>
+            <TableHeader value={value} handleFilter={setValue} toggle={toggleAddUserDrawer} />
+          </Grid>
+          <Grid item xs={12}>
+            <DataGrid
+              getRowId={(row) => row.ID_Paciente}
+              autoHeight
+              rows={filteredPatients}
+              columns={columns}
+              checkboxSelection
+              pageSize={pageSize}
+              disableSelectionOnClick
+              rowsPerPageOptions={[10, 25, 50]}
+              sx={{ '& .MuiDataGrid-columnHeaders': { borderRadius: 0 } }}
+              onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
+            />
+          </Grid>
         </Card>
       </Grid>
 
