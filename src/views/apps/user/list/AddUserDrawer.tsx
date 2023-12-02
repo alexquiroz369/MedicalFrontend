@@ -38,19 +38,19 @@ interface SidebarAddUserType {
 }
 
 interface UserData {
-  email: string
-  company: string
-  country: string
-  contact: number
-  fullName: string
-  username: string
+  nombre: string
+  edad: number
+  sexo: string
+  domicilio: string
+  carnet: number
+  contacto: number
 }
 
 const showErrors = (field: string, valueLen: number, min: number) => {
   if (valueLen === 0) {
-    return `${field} field is required`
+    return `${field} Este campo es requerido`
   } else if (valueLen > 0 && valueLen < min) {
-    return `${field} must be at least ${min} characters`
+    return `${field} debe tener al menos ${min} caracteres`
   } else {
     return ''
   }
@@ -84,12 +84,12 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  email: '',
-  company: '',
-  country: '',
-  fullName: '',
-  username: '',
-  contact: Number('')
+  nombre: '',
+  edad: Number(''),
+  sexo: '',
+  domicilio: '',
+  carnet: Number(''),
+  contacto: Number('')
 }
 
 const SidebarAddUser = (props: SidebarAddUserType) => {
@@ -123,7 +123,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const handleClose = () => {
     setPlan('basic')
     setRole('subscriber')
-    setValue('contact', Number(''))
+    setValue('contacto', Number(''))
     toggle()
     reset()
   }
@@ -138,7 +138,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <Header>
-        <Typography variant='h6'>Add User</Typography>
+        <Typography variant='h6'>Registrar Paciente</Typography>
         <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
@@ -147,24 +147,25 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='fullName'
+              name='nombre'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   value={value}
-                  label='Full Name'
+                  label='Nombre Completo'
                   onChange={onChange}
                   placeholder='John Doe'
-                  error={Boolean(errors.fullName)}
+                  error={Boolean(errors.nombre)}
                 />
               )}
             />
-            {errors.fullName && <FormHelperText sx={{ color: 'error.main' }}>{errors.fullName.message}</FormHelperText>}
+             
+            {errors.nombre && <FormHelperText sx={{ color: 'error.main' }}>{errors.nombre.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          {/*<FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='username'
+              name='edad'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -172,68 +173,51 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='Username'
                   onChange={onChange}
-                  placeholder='johndoe'
-                  error={Boolean(errors.username)}
+                  placeholder='23'
+                  error={Boolean(errors.edad)}
                 />
               )}
             />
-            {errors.username && <FormHelperText sx={{ color: 'error.main' }}>{errors.username.message}</FormHelperText>}
+            {errors.edad && <FormHelperText sx={{ color: 'error.main' }}>{errors.edad.message}</FormHelperText>}
           </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <InputLabel id='plan-select'>Select Plan</InputLabel>
+            <Select
+              fullWidth
+              value={plan}
+              id='select-plan'
+              label='Sexo'
+              labelId='plan-select'
+              onChange={e => setPlan(e.target.value)}
+              inputProps={{ placeholder: 'Sexo' }}
+            >
+              <MenuItem value='basic'>Masculino</MenuItem>
+              <MenuItem value='company'>Femenino</MenuItem>
+            </Select>
+          </FormControl>
+
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='email'
+              name='domicilio'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  type='email'
+                  type='text'
                   value={value}
-                  label='Email'
+                  label='Domicilio'
                   onChange={onChange}
-                  placeholder='johndoe@email.com'
-                  error={Boolean(errors.email)}
+                  placeholder='Av. Las Banderas #322'
+                  error={Boolean(errors.domicilio)}
                 />
               )}
             />
-            {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
+            {errors.domicilio && <FormHelperText sx={{ color: 'error.main' }}>{errors.domicilio.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='company'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Company'
-                  onChange={onChange}
-                  placeholder='Company PVT LTD'
-                  error={Boolean(errors.company)}
-                />
-              )}
-            />
-            {errors.company && <FormHelperText sx={{ color: 'error.main' }}>{errors.company.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='country'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Country'
-                  onChange={onChange}
-                  placeholder='Australia'
-                  error={Boolean(errors.country)}
-                />
-              )}
-            />
-            {errors.country && <FormHelperText sx={{ color: 'error.main' }}>{errors.country.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='contact'
+              name='carnet'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -242,51 +226,18 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='Contact'
                   onChange={onChange}
-                  placeholder='(397) 294-5153'
-                  error={Boolean(errors.contact)}
+                  placeholder='4008980'
+                  error={Boolean(errors.carnet)}
                 />
               )}
             />
-            {errors.contact && <FormHelperText sx={{ color: 'error.main' }}>{errors.contact.message}</FormHelperText>}
+            {errors.carnet && <FormHelperText sx={{ color: 'error.main' }}>{errors.carnet.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel id='role-select'>Select Role</InputLabel>
-            <Select
-              fullWidth
-              value={role}
-              id='select-role'
-              label='Select Role'
-              labelId='role-select'
-              onChange={e => setRole(e.target.value)}
-              inputProps={{ placeholder: 'Select Role' }}
-            >
-              <MenuItem value='admin'>Admin</MenuItem>
-              <MenuItem value='author'>Author</MenuItem>
-              <MenuItem value='editor'>Editor</MenuItem>
-              <MenuItem value='maintainer'>Maintainer</MenuItem>
-              <MenuItem value='subscriber'>Subscriber</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel id='plan-select'>Select Plan</InputLabel>
-            <Select
-              fullWidth
-              value={plan}
-              id='select-plan'
-              label='Select Plan'
-              labelId='plan-select'
-              onChange={e => setPlan(e.target.value)}
-              inputProps={{ placeholder: 'Select Plan' }}
-            >
-              <MenuItem value='basic'>Basic</MenuItem>
-              <MenuItem value='company'>Company</MenuItem>
-              <MenuItem value='enterprise'>Enterprise</MenuItem>
-              <MenuItem value='team'>Team</MenuItem>
-            </Select>
-          </FormControl>
+          */}
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
-              Submit
+              Registrar
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
               Cancel

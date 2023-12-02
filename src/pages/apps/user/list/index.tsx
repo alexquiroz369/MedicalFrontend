@@ -225,12 +225,12 @@ const columns = [
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'Domicilio',
-    field: 'Domicilio',
+    headerName: 'Carnet',
+    field: 'Carnet',
     renderCell: ({ row }: CellType) => {
       return (
         <Typography variant='subtitle1' noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.Domicilio}
+          {row.Carnet}
         </Typography>
       )
     }
@@ -238,14 +238,14 @@ const columns = [
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'Carnet',
-    headerName: 'Carnet',
+    field: 'Celular',
+    headerName: 'Celular',
     renderCell: ({ row }: CellType) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row.Carnet}
+          label={row.contacto}
           color={userStatusObj[row.Carnet]}
           sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
         />
@@ -344,12 +344,14 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
       </Grid>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Search Filters' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
+          <CardHeader title='Pacientes Registrados en el Sistema' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
+          {/*
           <CardContent>
+            
             <Grid container spacing={6}>
               <Grid item sm={4} xs={12}>
                 <FormControl fullWidth>
-                  {/* */}
+                 
                   <InputLabel id='role-select'>Select Role</InputLabel>
                   <Select
                     fullWidth
@@ -389,6 +391,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
                   </Select>
                 </FormControl>
               </Grid>
+               
               <Grid item sm={4} xs={12}>
                 <FormControl fullWidth>
                   <InputLabel id='status-select'>Select Status</InputLabel>
@@ -410,6 +413,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
               </Grid>
             </Grid>
           </CardContent>
+        */}
           <Divider />
           <Grid item xs={12}>
             <TableHeader value={value} handleFilter={setValue} toggle={toggleAddUserDrawer} />
