@@ -3,7 +3,6 @@ import { ReactNode } from 'react'
 
 // ** Types
 import { ThemeColor } from 'src/@core/layouts/types'
-import { OptionsMenuType } from 'src/@core/components/option-menu/types'
 
 export type CardStatsHorizontalProps = {
   title: string
@@ -22,7 +21,6 @@ export type CardStatsVerticalProps = {
   color?: ThemeColor
   trendNumber: string
   trend?: 'positive' | 'negative'
-  optionsMenuProps?: OptionsMenuType
 }
 
 export type CardStatsCharacterProps = {

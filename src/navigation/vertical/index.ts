@@ -14,6 +14,16 @@ const navigation = (): VerticalNavItemsType => {
       icon: 'mdi:email-outline',
     },
     {
+      title: 'Ver Pacientes',
+      path: '/test',
+      icon: 'mdi:email-outline',
+    },
+    {
+      title: 'User list',
+      path: '/show-pacients',
+      icon: 'mdi:email-outline',
+    },
+    {
       path: '/acl',
       action: 'read',
       subject: 'acl-page',

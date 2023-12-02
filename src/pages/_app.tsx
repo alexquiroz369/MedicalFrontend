@@ -63,6 +63,8 @@ import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Global css styles
 import '../../styles/globals.css'
+import { Provider } from 'react-redux'
+import { store } from 'src/store'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -119,7 +121,7 @@ const App = (props: ExtendedAppProps) => {
   const aclAbilities = Component.acl ?? defaultACLObj
 
   return (
-    
+    <Provider store={store}>
       <CacheProvider value={emotionCache}>
         <Head>
           <title>{`${themeConfig.templateName} - Material Design React Admin Template`}</title>
@@ -154,7 +156,7 @@ const App = (props: ExtendedAppProps) => {
           </SettingsProvider>
         </AuthProvider>
       </CacheProvider>
-   
+      </Provider>
   )
 }
 
