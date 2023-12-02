@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Button from '@mui/material/Button'
 import MenuItem from '@mui/material/MenuItem'
 import { styled } from '@mui/material/styles'
@@ -31,6 +31,11 @@ import { addUser } from 'src/store/apps/user'
 
 // ** Types Imports
 import { AppDispatch } from 'src/store'
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Slide } from '@mui/material'
+import { TransitionProps } from '@mui/material/transitions'
+import axios from 'axios'
+import { Router } from 'next/router'
+import React from 'react'
 
 interface SidebarAddUserType {
   open: boolean
@@ -45,6 +50,14 @@ interface UserData {
   carnet: number
   contacto: number
 }
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const showErrors = (field: string, valueLen: number, min: number) => {
   if (valueLen === 0) {
@@ -65,21 +78,26 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  company: yup.string().required(),
-  country: yup.string().required(),
-  email: yup.string().email().required(),
-  contact: yup
+  edad: yup
     .number()
-    .typeError('Contact Number field is required')
-    .min(10, obj => showErrors('Contact Number', obj.value.length, obj.min))
+    .typeError('Debe llenar la Edad')
+    .min(0, obj => showErrors('Edad', obj.value.length, obj.min))
+    .max(120, obj => showErrors('Edad', obj.value.length, obj.max))
     .required(),
-  fullName: yup
-    .string()
-    .min(3, obj => showErrors('First Name', obj.value.length, obj.min))
+  domicilio: yup.string().required(),
+  contacto: yup
+    .number()
+    .typeError('El Numero de Contacto es necesario')
+    .min(7, obj => showErrors('Contact Number', obj.value.length, obj.min))
     .required(),
-  username: yup
+  carnet: yup
+    .number()
+    .typeError('El Carnet es Obligatorio')
+    .min(2000000, obj => showErrors('Carnet', obj.value.length, obj.min))
+    .required(),
+  nombre: yup
     .string()
-    .min(3, obj => showErrors('Username', obj.value.length, obj.min))
+    .min(3, obj => showErrors('Nombre de Paciente', obj.value.length, obj.min))
     .required()
 })
 
@@ -96,12 +114,20 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   // ** Props
   const { open, toggle } = props
 
-  // ** State
-  const [plan, setPlan] = useState<string>('basic')
-  const [role, setRole] = useState<string>('subscriber')
+  const [formData, setFormData] = useState({
+    sexo: '',
+  });
 
   // ** Hooks
-  const dispatch = useDispatch<AppDispatch>()
+
+  const [opened, setOpened] = React.useState(false);
+  const handleClickOpen = () => {
+    setOpened(true);
+  };
+  const handleClosed = () => {
+    setOpened(false);
+    window.location.reload();
+  };
   const {
     reset,
     control,
@@ -114,19 +140,52 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = (data: UserData) => {
-    dispatch(addUser({ ...data, role, currentPlan: plan }))
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const selectedValue = e.target.value;
+    setFormData((prevData) => ({
+      ...prevData,
+      sexo: selectedValue,
+    }));
+  };
+
+  const onSubmit = async (data: UserData) => {
+    const formattedFormData = {
+      Nombre: data.nombre,
+      Edad: data.edad,
+      Sexo: formData.sexo,
+      Domicilio: data.domicilio,
+      Carnet: data.carnet,
+      contacto: data.contacto
+    };
+    //dispatch(addUser({ ...data, role, currentPlan: sexo }))
     toggle()
-    reset()
+    //reset()
+    console.log(formattedFormData)
+    try {
+      // Realiza la solicitud POST a tu API
+      const response = await axios.post('http://localhost:3000/pacientes', formattedFormData);
+      // Configura el mensaje de éxito para el diálogo
+      setDialogMessage(response.data.mensaje);
+     
+
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        // Si el servidor devuelve un mensaje de error, úsalo
+        setDialogMessage(`Error: ${error.response.data.message}`);
+      } else {
+        // Si no, usa un mensaje de error genérico
+        setDialogMessage('Falla al enviar el formulario. Por favor, inténtalo de nuevo más tarde.');
+      }
+    }
+    // Abre el diálogo
+    handleClickOpen();
   }
 
   const handleClose = () => {
-    setPlan('basic')
-    setRole('subscriber')
-    setValue('contacto', Number(''))
     toggle()
     reset()
   }
+  const [dialogMessage, setDialogMessage] = useState('');
 
   return (
     <Drawer
@@ -160,20 +219,21 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 />
               )}
             />
-             
+
             {errors.nombre && <FormHelperText sx={{ color: 'error.main' }}>{errors.nombre.message}</FormHelperText>}
           </FormControl>
-          {/*<FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='edad'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
+                  type='number'
                   value={value}
-                  label='Username'
+                  label='Edad'
                   onChange={onChange}
-                  placeholder='23'
+                  placeholder='18'
                   error={Boolean(errors.edad)}
                 />
               )}
@@ -181,22 +241,20 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             {errors.edad && <FormHelperText sx={{ color: 'error.main' }}>{errors.edad.message}</FormHelperText>}
           </FormControl>
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel id='plan-select'>Select Plan</InputLabel>
+          <FormControl  fullWidth sx={{ mb: 6 }}>
+            <InputLabel id='form-layouts-tabs-select-label'>Sexo</InputLabel>
             <Select
-              fullWidth
-              value={plan}
-              id='select-plan'
               label='Sexo'
-              labelId='plan-select'
-              onChange={e => setPlan(e.target.value)}
-              inputProps={{ placeholder: 'Sexo' }}
+              value={formData.sexo} // Asigna el valor seleccionado
+              onChange={handleSelectChange} // Maneja el cambio de valor
+              labelId='form-layouts-tabs-select-label'
+              required
             >
-              <MenuItem value='basic'>Masculino</MenuItem>
-              <MenuItem value='company'>Femenino</MenuItem>
+              <MenuItem value='Masculino'>Masculino</MenuItem>
+              <MenuItem value='Femenino'>Femenino</MenuItem>
             </Select>
           </FormControl>
-
+           
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='domicilio'
@@ -215,6 +273,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.domicilio && <FormHelperText sx={{ color: 'error.main' }}>{errors.domicilio.message}</FormHelperText>}
           </FormControl>
+
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='carnet'
@@ -224,7 +283,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 <TextField
                   type='number'
                   value={value}
-                  label='Contact'
+                  label='Carnet de Identidad'
                   onChange={onChange}
                   placeholder='4008980'
                   error={Boolean(errors.carnet)}
@@ -233,7 +292,26 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.carnet && <FormHelperText sx={{ color: 'error.main' }}>{errors.carnet.message}</FormHelperText>}
           </FormControl>
-          */}
+
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='contacto'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  type='number'
+                  value={value}
+                  label='Celular o Telefono'
+                  onChange={onChange}
+                  placeholder='77-86-20-45'
+                  error={Boolean(errors.contacto)}
+                />
+              )}
+            />
+            {errors.contacto && <FormHelperText sx={{ color: 'error.main' }}>{errors.contacto.message}</FormHelperText>}
+          </FormControl>
+
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
@@ -245,7 +323,27 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </Box>
         </form>
       </Box>
+      <React.Fragment>
+        <Dialog
+          open={opened}
+          TransitionComponent={Transition}
+          keepMounted
+          onClose={handleClosed}
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle>{"Registro de Paciente"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              {dialogMessage}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClosed}>Correcto</Button>
+          </DialogActions>
+        </Dialog>
+      </React.Fragment>
     </Drawer>
+
   )
 }
 

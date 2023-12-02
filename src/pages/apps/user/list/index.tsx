@@ -184,8 +184,8 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink href='/apps/user/view/overview/'>{Nombre}</StyledLink>
-            <Typography noWrap variant='caption'>
+            <StyledLink  href='/apps/user/view/overview/' sx={{ fontSize: '17px' }}>{Nombre}</StyledLink>
+            <Typography sx={{ fontSize: '12px' }} noWrap variant='caption'>
               {row.Domicilio}
             </Typography>
           </Box>
@@ -195,7 +195,8 @@ const columns = [
   },
   {
     flex: 0.2,
-    minWidth: 250,
+    minWidth: 100,
+    maxWidth: 100,
     field: 'Edad',
     headerName: 'Edad',
     renderCell: ({ row }: CellType) => {
@@ -209,7 +210,8 @@ const columns = [
   {
     flex: 0.15,
     field: 'Sexo',
-    minWidth: 150,
+    minWidth: 140,
+    maxWidth: 150,
     headerName: 'Sexo',
     renderCell: ({ row }: CellType) => {
       return (
@@ -224,7 +226,8 @@ const columns = [
   },
   {
     flex: 0.15,
-    minWidth: 120,
+    minWidth: 140,
+    maxWidth: 150,
     headerName: 'Carnet',
     field: 'Carnet',
     renderCell: ({ row }: CellType) => {
@@ -238,6 +241,7 @@ const columns = [
   {
     flex: 0.1,
     minWidth: 110,
+    maxWidth: 150,
     field: 'Celular',
     headerName: 'Celular',
     renderCell: ({ row }: CellType) => {
@@ -247,7 +251,7 @@ const columns = [
           size='small'
           label={row.contacto}
           color={userStatusObj[row.Carnet]}
-          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '20px' } }}
         />
       )
     }

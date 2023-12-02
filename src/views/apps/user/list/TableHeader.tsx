@@ -36,7 +36,7 @@ const TableHeader = (props: TableHeaderProps) => {
         />
 
         <Button sx={{ mb: 2 }} onClick={toggle} variant='contained'>
-          Registrar Paciente
+          Registrar Nuevo Paciente
         </Button>
       </Box>
     </Box>
