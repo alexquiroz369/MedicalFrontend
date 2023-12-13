@@ -52,6 +52,7 @@ import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/t
 // ** Custom Table Components Imports
 import TableHeader from 'src/views/apps/user/list/TableHeader'
 import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
+import router from 'next/router'
 
 interface UserRoleType {
   [key: string]: { icon: string; color: string }
@@ -109,6 +110,7 @@ const renderClient = (row: UsersType) => {
 }
 
 const RowOptions = ({ id }: { id: number | string }) => {
+  const userId = id;
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
 
@@ -128,6 +130,11 @@ const RowOptions = ({ id }: { id: number | string }) => {
     dispatch(deleteUser(id))
     handleRowOptionsClose()
   }
+  const handleClick = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    router.push(`/apps/user/view/${userId}`);
+    handleRowOptionsClose(); // Cerrar opciones de fila después de hacer clic
+  };
 
   return (
     <>
@@ -150,10 +157,9 @@ const RowOptions = ({ id }: { id: number | string }) => {
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
         <MenuItem
-          component={Link}
+          component='a'
           sx={{ '& svg': { mr: 2 } }}
-          onClick={handleRowOptionsClose}
-          href='/apps/user/view/overview/'
+          onClick={handleClick}
         >
           <Icon icon='mdi:eye-outline' fontSize={20} />
           View
@@ -184,7 +190,7 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink  href='/apps/user/view/overview/' sx={{ fontSize: '17px' }}>{Nombre}</StyledLink>
+            <StyledLink  href={`/apps/user/view/${row.ID_Paciente}`} sx={{ fontSize: '17px' }}>{Nombre}</StyledLink>
             <Typography sx={{ fontSize: '12px' }} noWrap variant='caption'>
               {row.Domicilio}
             </Typography>
@@ -287,12 +293,12 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   useEffect(() => {
     // Fetch patient data from API
     const fetchPatients = async () => {
-      const response = await fetch('http://localhost:3000/pacientes');
-      const data: UsersType[] = await response.json();
-      //console.log(data)
+      const url = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes`;
+      const response = await axios.get(url);
+      const data = response.data;
       setPatients(data);
     };
-
+  
     fetchPatients();
   }, []);
 

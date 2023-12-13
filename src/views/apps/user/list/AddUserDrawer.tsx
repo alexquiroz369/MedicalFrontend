@@ -163,7 +163,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     console.log(formattedFormData)
     try {
       // Realiza la solicitud POST a tu API
-      const response = await axios.post('http://localhost:3000/pacientes', formattedFormData);
+      const response = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes`, formattedFormData);
       // Configura el mensaje de éxito para el diálogo
       setDialogMessage(response.data.mensaje);
      
