@@ -35,7 +35,9 @@ const FormCreatePacients = () => {
     };
 
     const handleClose = () => {
+        location.reload();
         setOpen(false);
+        
     };
     const [formData, setFormData] = useState({
         nombre: '',
@@ -87,7 +89,7 @@ const FormCreatePacients = () => {
             const response = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes`, formattedFormData);
             // Configura el mensaje de éxito para el diálogo
             setDialogMessage(response.data.mensaje);
-            Router.push('/');
+            
             
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {

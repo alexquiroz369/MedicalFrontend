@@ -128,17 +128,19 @@ const VerticalNavHeader = (props: Props) => {
         userNavMenuBranding(props)
       ) : (
         <StyledLink href='/'>
+          <img src="/images/apple-touch-icon.png" alt=""  width={40}/>
+          {/* 
           <svg width={40} fill='none' height={22} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
             <rect
               rx='25.1443'
-              width='150.2886'
+              width='50.2886'
               height='143.953'
               fill={theme.palette.primary.main}
               transform='matrix(-0.865206 0.501417 0.498585 0.866841 195.571 0)'
             />
             <rect
               rx='25.1443'
-              width='150.2886'
+              width='50.2886'
               height='143.953'
               fillOpacity='0.4'
               fill='url(#paint0_linear_7821_79167)'
@@ -197,7 +199,7 @@ const VerticalNavHeader = (props: Props) => {
                 <stop offset='1' stopOpacity='0' />
               </linearGradient>
             </defs>
-          </svg>
+          </svg>*/}
           <HeaderTitle variant='h6' sx={{ ...menuCollapsedStyles, ...(navCollapsed && !navHover ? {} : { ml: 2 }) }}>
             {themeConfig.templateName}
           </HeaderTitle>

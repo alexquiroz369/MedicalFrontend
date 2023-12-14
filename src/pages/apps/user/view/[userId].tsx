@@ -35,7 +35,7 @@ import UserSuspendDialog from 'src/views/apps/user/view/UserSuspendDialog'
 import { ThemeColor } from 'src/@core/layouts/types'
 
 // ** Utils Import
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import axios from 'axios'
 import { PacientType, UsersType } from 'src/types/apps/userTypes'
 import FormPacientData from 'src/views/forms/form-layouts/FormPacientData'
@@ -102,7 +102,8 @@ const UserView = () => {
   const [openEdit, setOpenEdit] = useState<boolean>(false)
   const [openPlans, setOpenPlans] = useState<boolean>(false)
   const [suspendDialogOpen, setSuspendDialogOpen] = useState<boolean>(false)
-  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false)
+  //const [consultationDialogOpen, setconsultationDialogOpen] = useState<boolean>(false)
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserPacient, setCurrentUserPacient] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -150,12 +151,15 @@ const UserView = () => {
   const [isRequestSuccessful, setIsRequestSuccessful] = useState(false);
   const [open, setOpen] = React.useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
+
   const handleClickOpen = () => {
       setOpen(true);
   };
 
   const handleClose = () => {
-      setOpen(false);
+    console.log('cerrado');
+    location.reload();
+    setOpen(false);
   };
   const handleCloseExit = () => {
     location.reload();
@@ -415,9 +419,13 @@ const UserView = () => {
             <Button variant='contained' sx={{ mr: 2 }} onClick={() => setOpenEdit(true)}>
               Editar
             </Button>
+            <Button  variant='contained' onClick={() => Router.push(`/create-consultation?userId=${userId}`)}>
+              Crear Consulta
+            </Button>
             <Button color='error' variant='outlined' onClick={() => setSuspendDialogOpen(true)}>
               Suspender
             </Button>
+           
           </CardActions>
           {isRequestSuccessful && <FormPacientData datos={datosPaciente}></FormPacientData>}
           
@@ -518,7 +526,6 @@ const UserView = () => {
                 <Dialog
                     open={open}
                     TransitionComponent={Transition}
-                    keepMounted
                     onClose={handleClose}
                     aria-describedby="alert-dialog-slide-description"
                 >
