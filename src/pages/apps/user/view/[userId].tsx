@@ -21,9 +21,6 @@ import DialogTitle from '@mui/material/DialogTitle'
 import FormControl from '@mui/material/FormControl'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
-import InputAdornment from '@mui/material/InputAdornment'
-import LinearProgress from '@mui/material/LinearProgress'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Icon Imports
@@ -33,22 +30,18 @@ import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import UserSuspendDialog from 'src/views/apps/user/view/UserSuspendDialog'
-import UserSubscriptionDialog from 'src/views/apps/user/view/UserSubscriptionDialog'
 
 // ** Types
 import { ThemeColor } from 'src/@core/layouts/types'
 
 // ** Utils Import
-
-import { AbilityContext } from 'src/layouts/components/acl/Can'
-// ** Types
-
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import { PacientType, UsersType } from 'src/types/apps/userTypes'
-import FormLayoutsCollapsible from 'src/views/forms/form-layouts/FormLayoutsCollapsible'
-import AboutOverivew from 'src/views/pages/user-profile/profile/AboutOverivew'
 import FormPacientData from 'src/views/forms/form-layouts/FormPacientData'
+import React from 'react'
+import { TransitionProps } from '@mui/material/transitions';
+import { Slide } from '@mui/material'
 
 interface ColorsType {
   [key: string]: ThemeColor
@@ -152,10 +145,31 @@ const UserView = () => {
   // Handle Upgrade Plan dialog
   const handlePlansClickOpen = () => setOpenPlans(true)
   const handlePlansClose = () => setOpenPlans(false)
-  const ability = useContext(AbilityContext)
   const router = useRouter()
   const { userId } = router.query;
   const [isRequestSuccessful, setIsRequestSuccessful] = useState(false);
+  const [open, setOpen] = React.useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
+  const handleClickOpen = () => {
+      setOpen(true);
+  };
+
+  const handleClose = () => {
+      setOpen(false);
+  };
+  const handleCloseExit = () => {
+    location.reload();
+    setOpen(false);
+};
+
+  const Transition = React.forwardRef(function Transition(
+    props: TransitionProps & {
+        children: React.ReactElement<any, any>;
+    },
+    ref: React.Ref<unknown>,
+) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 
   useEffect(() => {
     const fetchPacienteData = async () => {
@@ -268,25 +282,42 @@ const UserView = () => {
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    const { name, value } = e.target; 
+        if (name === 'contacto' && value.length > 8) {
+            return;
+        }
+        if (name === 'Carnet' && value.length > 8) {
+            return;
+        }
+        if (name === 'Edad' && value.length > 2) {
+            return;
+        }
+    setFormDataPacient((prevData) => ({ ...prevData, [name]: value }));
   };
   const handleChangeSelect = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormDataPacient((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleFormSubmit = async () => {
     try {
       // Realiza la llamada a la API para enviar el formulario
-      //const response = await axios.post('/api/user/update', formData);
-      console.log(formData)
-      // Muestra la respuesta de la API en la consola
-      //console.log('API Response:', response.data);
-      setOpenEdit(false)
+      const response = await axios.put(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/${userId}`, formDataPacient);
+      setDialogMessage("Datos Actualizados Correctamente :) ");   
+      setOpenEdit(false);
+   
     } catch (error) {
-      console.error('Error al enviar el formulario:', error);
-    }
+      if (axios.isAxiosError(error) && error.response) {
+          // Si el servidor devuelve un mensaje de error, úsalo
+          handleEditClose();
+          setDialogMessage(`Error: ${error.response.data.message}`);
+      } else {
+          // Si no, usa un mensaje de error genérico
+          handleEditClose();
+          setDialogMessage('Falla al enviar el formulario. Por favor, inténtalo de nuevo más tarde.');
+      }
+  }
+    handleClickOpen();
   }
 
   return (
@@ -389,7 +420,7 @@ const UserView = () => {
             </Button>
           </CardActions>
           {isRequestSuccessful && <FormPacientData datos={datosPaciente}></FormPacientData>}
-          {/** 
+          
           <Dialog
             open={openEdit}
             onClose={handleEditClose}
@@ -410,45 +441,34 @@ const UserView = () => {
                     <TextField
                       fullWidth
                       label='Nombre Completo'
-                      name='fullName'
-                      value={formData.fullName}
+                      name='Nombre'
+                      value={formDataPacient.Nombre}
                       onChange={handleInputChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label='Username'
-                      name='username'
-                      value={formData.username}
+                      label='Carnet de Identidad'
+                      name='Carnet'
+                      value={formDataPacient.Carnet}
                       onChange={handleInputChange}
-                      InputProps={{ startAdornment: <InputAdornment position='start'>@</InputAdornment> }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      type='email'
-                      label='Email'
-                      name='email'
-                      value={formData.email}
-                      onChange={handleInputChange}
+                     
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <InputLabel id='user-view-status-label'>Estado</InputLabel>
+                      <InputLabel id='user-view-status-label'>Sexo:</InputLabel>
                       <Select
-                        label='Status'
-                        name='status'
-                        value={formData.status}
+                        label='Sexo'
+                        name='Sexo'
+                        value={formDataPacient.Sexo}
                         onChange={handleChangeSelect}
                         id='user-view-status'
                         labelId='user-view-status-label'
                       >
-                        <MenuItem value='Pending'>Pending</MenuItem>
-                        <MenuItem value='Active'>Active</MenuItem>
-                        <MenuItem value='Inactive'>Inactive</MenuItem>
+                        <MenuItem value='Masculino'>Masculino</MenuItem>
+                        <MenuItem value='Femenino'>Femenino</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -456,27 +476,63 @@ const UserView = () => {
                     <TextField
                       fullWidth
                       label='Contacto'
-                      name='contact'
-                      value={formData.contact}
+                      name='contacto'
+                      value={formDataPacient.contacto}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label='Domicilio'
+                      name='Domicilio'
+                      value={formDataPacient.Domicilio}
+                      onChange={handleInputChange}   
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label='Edad'
+                      name='Edad'
+                      value={formDataPacient.Edad}
                       onChange={handleInputChange}
                     />
                   </Grid>
                 </Grid>
               </form>
-
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
               <Button variant='contained' sx={{ mr: 1 }} onClick={handleFormSubmit}>
-                Enviar
+                Actualizar
               </Button>
               <Button variant='outlined' color='secondary' onClick={handleEditClose}>
                 Cancelar
               </Button>
             </DialogActions>
           </Dialog>
-          <UserSuspendDialog open={suspendDialogOpen} setOpen={setSuspendDialogOpen} />
-          <UserSubscriptionDialog open={subscriptionDialogOpen} setOpen={setSubscriptionDialogOpen} />
-        */}
+
+          <UserSuspendDialog open={suspendDialogOpen} setOpen={setSuspendDialogOpen} userId={userId} />
+          
+                
+                <Dialog
+                    open={open}
+                    TransitionComponent={Transition}
+                    keepMounted
+                    onClose={handleClose}
+                    aria-describedby="alert-dialog-slide-description"
+                >
+                    <DialogTitle>{"Actualizar datos de Paciente"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-slide-description">
+                            {dialogMessage}
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseExit}>Correcto</Button>
+                    </DialogActions>
+                </Dialog>
+                 
         </Card>
       </Grid>
 

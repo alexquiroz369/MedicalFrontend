@@ -11,12 +11,12 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: 'Registrar Nuevo Paciente',
       path: '/create-pacient',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:human',
     },
     {
       title: 'Ver Pacientes',
       path: '/test',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:human-male-female',
     },
     {
       title: 'User list',
