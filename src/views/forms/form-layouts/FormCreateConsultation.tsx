@@ -35,9 +35,8 @@ const FormCreateConsultation = (props: Props) => {
     const handleClickOpen = () => {
         setOpen(true);
     };
-    const [consultationId, setConsultationId] = useState(null);
-
     const handleClose = () => {
+        Router.push('/test');
         setOpen(false);
     };
     const [formData, setFormData] = useState({
@@ -215,7 +214,7 @@ const FormCreateConsultation = (props: Props) => {
                                 name='Diagnostico'
                                 value={examenData.Diagnostico}
                                 onChange={handleChange}
-                            //required
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -233,7 +232,7 @@ const FormCreateConsultation = (props: Props) => {
                                 name='Tratamiento'
                                 value={examenData.Tratamiento}
                                 onChange={handleChange}
-                            //required
+                                required
                             />
                         </Grid>
                         <Grid item xs={12}>
