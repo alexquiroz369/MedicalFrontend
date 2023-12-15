@@ -153,7 +153,7 @@ const UserView = () => {
   const [dialogMessage, setDialogMessage] = useState('');
 
   const handleClickOpen = () => {
-      setOpen(true);
+    setOpen(true);
   };
 
   const handleClose = () => {
@@ -164,16 +164,16 @@ const UserView = () => {
   const handleCloseExit = () => {
     location.reload();
     setOpen(false);
-};
+  };
 
   const Transition = React.forwardRef(function Transition(
     props: TransitionProps & {
-        children: React.ReactElement<any, any>;
+      children: React.ReactElement<any, any>;
     },
     ref: React.Ref<unknown>,
-) {
+  ) {
     return <Slide direction="up" ref={ref} {...props} />;
-});
+  });
 
   useEffect(() => {
     const fetchPacienteData = async () => {
@@ -181,7 +181,7 @@ const UserView = () => {
         if (typeof userId === 'string') {
           const response = await axios.get(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/${Number(userId)}`);
           const pacient = response.data;
-          
+
           if (pacient) {
             setCurrentUserPacient(pacient);
             setFormDataPacient({
@@ -209,7 +209,7 @@ const UserView = () => {
           // Segunda petición para obtener los datos adicionales
           const response2 = await axios.get(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/database/lastdata/${Number(userId)}`);
           const user = response2.data;
-          setIsRequestSuccessful(true); 
+          setIsRequestSuccessful(true);
           if (user) {
             setCurrentUser(user);
             setFormData({
@@ -286,16 +286,16 @@ const UserView = () => {
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target; 
-        if (name === 'contacto' && value.length > 8) {
-            return;
-        }
-        if (name === 'Carnet' && value.length > 8) {
-            return;
-        }
-        if (name === 'Edad' && value.length > 2) {
-            return;
-        }
+    const { name, value } = e.target;
+    if (name === 'contacto' && value.length > 8) {
+      return;
+    }
+    if (name === 'Carnet' && value.length > 8) {
+      return;
+    }
+    if (name === 'Edad' && value.length > 2) {
+      return;
+    }
     setFormDataPacient((prevData) => ({ ...prevData, [name]: value }));
   };
   const handleChangeSelect = (e: SelectChangeEvent<string>) => {
@@ -307,20 +307,20 @@ const UserView = () => {
     try {
       // Realiza la llamada a la API para enviar el formulario
       const response = await axios.put(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/${userId}`, formDataPacient);
-      setDialogMessage("Datos Actualizados Correctamente :) ");   
+      setDialogMessage("Datos Actualizados Correctamente :) ");
       setOpenEdit(false);
-   
+
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-          // Si el servidor devuelve un mensaje de error, úsalo
-          handleEditClose();
-          setDialogMessage(`Error: ${error.response.data.message}`);
+        // Si el servidor devuelve un mensaje de error, úsalo
+        handleEditClose();
+        setDialogMessage(`Error: ${error.response.data.message}`);
       } else {
-          // Si no, usa un mensaje de error genérico
-          handleEditClose();
-          setDialogMessage('Falla al enviar el formulario. Por favor, inténtalo de nuevo más tarde.');
+        // Si no, usa un mensaje de error genérico
+        handleEditClose();
+        setDialogMessage('Falla al enviar el formulario. Por favor, inténtalo de nuevo más tarde.');
       }
-  }
+    }
     handleClickOpen();
   }
 
@@ -419,16 +419,19 @@ const UserView = () => {
             <Button variant='contained' sx={{ mr: 2 }} onClick={() => setOpenEdit(true)}>
               Editar
             </Button>
-            <Button  variant='contained' onClick={() => Router.push(`/create-consultation?userId=${userId}`)}>
+            <Button variant='contained' onClick={() => Router.push(`/create-consultation?userId=${userId}`)}>
               Crear Consulta
             </Button>
             <Button color='error' variant='outlined' onClick={() => setSuspendDialogOpen(true)}>
               Suspender
             </Button>
-           
+            <Button variant='contained' onClick={() => Router.push(`/other-consultation?userId=${userId}`)}>
+              Otras Consultas
+            </Button>
           </CardActions>
+
           {isRequestSuccessful && <FormPacientData datos={datosPaciente}></FormPacientData>}
-          
+
           <Dialog
             open={openEdit}
             onClose={handleEditClose}
@@ -461,7 +464,7 @@ const UserView = () => {
                       name='Carnet'
                       value={formDataPacient.Carnet}
                       onChange={handleInputChange}
-                     
+
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -495,7 +498,7 @@ const UserView = () => {
                       label='Domicilio'
                       name='Domicilio'
                       value={formDataPacient.Domicilio}
-                      onChange={handleInputChange}   
+                      onChange={handleInputChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -521,25 +524,23 @@ const UserView = () => {
           </Dialog>
 
           <UserSuspendDialog open={suspendDialogOpen} setOpen={setSuspendDialogOpen} userId={userId} />
-          
-                
-                <Dialog
-                    open={open}
-                    TransitionComponent={Transition}
-                    onClose={handleClose}
-                    aria-describedby="alert-dialog-slide-description"
-                >
-                    <DialogTitle>{"Actualizar datos de Paciente"}</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText id="alert-dialog-slide-description">
-                            {dialogMessage}
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseExit}>Correcto</Button>
-                    </DialogActions>
-                </Dialog>
-                 
+          <Dialog
+            open={open}
+            TransitionComponent={Transition}
+            onClose={handleClose}
+            aria-describedby="alert-dialog-slide-description"
+          >
+            <DialogTitle>{"Actualizar datos de Paciente"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-slide-description">
+                {dialogMessage}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseExit}>Correcto</Button>
+            </DialogActions>
+          </Dialog>
+
         </Card>
       </Grid>
 

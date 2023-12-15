@@ -153,9 +153,9 @@ const LoginV1 = () => {
           </Box>
           <Box sx={{ mb: 6 }}>
             <Typography variant='h5' sx={{ mb: 1.5, fontWeight: 600, letterSpacing: '0.18px' }}>
-              {`Welcome to ${themeConfig.templateName}! 👋🏻`}
+              {`Bienvenido a ${themeConfig.templateName}! 👋🏻`}
             </Typography>
-            <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
+            <Typography variant='body2'>Por favor, inicie sesion para usar el Sistema</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
             <TextField autoFocus fullWidth id='email' label='Email' sx={{ mb: 4 }} />
