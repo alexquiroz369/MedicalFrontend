@@ -9,7 +9,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Slide } from '@mui/material'
+import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Slide, Typography, Divider } from '@mui/material'
 import { FormEvent, useState } from 'react'
 import axios from 'axios'
 import React from 'react'
@@ -28,14 +28,14 @@ const Transition = React.forwardRef(function Transition(
 
 type Props = {
     userId: any
-  }
-
+}
 const FormCreateConsultation = (props: Props) => {
     const [open, setOpen] = React.useState(false);
-    const {userId} = props
+    const { userId } = props
     const handleClickOpen = () => {
         setOpen(true);
     };
+    const [consultationId, setConsultationId] = useState(null);
 
     const handleClose = () => {
         setOpen(false);
@@ -44,10 +44,42 @@ const FormCreateConsultation = (props: Props) => {
         Motivo_Consulta: '',
         Nombre_Doctor: '',
         pacienteId: userId,
-        sexo: '',
-        domicilio: '',
-        carnet: '',
-        contacto: ''
+    });
+    const [examenData, setExamenData] = useState({
+        FrecuenciaCardiaca: 0,
+        FrecuenciaRespiratoria: 0,
+        Temperatura: 0,
+        PresionArterial: 0,
+        Talla: 0,
+        Peso: 0,
+        Observaciones: '',
+        Tipo_Examen: '',
+        Resultados: '',
+        Diagnostico: '',
+        Tratamiento: ''
+    });
+
+    const [sendData, setSendData] = useState({
+        consultaId: null,
+        examenGeneralData: {
+            FrecuenciaCardiaca: examenData.FrecuenciaCardiaca,
+            FrecuenciaRespiratoria: examenData.FrecuenciaRespiratoria,
+            Temperatura: examenData.Temperatura,
+            PresionArterial: examenData.PresionArterial,
+            Talla: examenData.Talla,
+            Peso: examenData.Peso,
+        },
+        examenFisicoRegionalData: {
+            Observaciones: examenData.Observaciones
+        },
+        examenesComplementariosData: {
+            Tipo_Examen: examenData.Tipo_Examen,
+            Resultados: examenData.Resultados
+        },
+        diagnosticoTratamientoData: {
+            Diagnostico: examenData.Diagnostico,
+            Tratamiento: examenData.Tratamiento
+        }
     });
     const [dialogMessage, setDialogMessage] = useState('');
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,8 +97,32 @@ const FormCreateConsultation = (props: Props) => {
             ...prevData,
             [name]: value
         }));
-    };
-
+        setExamenData((prevData) => ({
+            ...prevData,
+            [name]: value
+        }));
+        // Actualiza también el sendData directamente aquí
+        setSendData((prevData) => ({
+            ...prevData,
+            examenGeneralData: {
+                ...prevData.examenGeneralData,
+                [name]: value
+            },
+            examenFisicoRegionalData: {
+                ...prevData.examenFisicoRegionalData,
+                [name]: value
+            },
+            examenesComplementariosData: {
+                ...prevData.examenesComplementariosData,
+                [name]: value
+            },
+            diagnosticoTratamientoData: {
+                ...prevData.diagnosticoTratamientoData,
+                [name]: value
+            },
+            // Agrega más propiedades según sea necesario
+        }));
+    }
     const handleSelectChange = (e: SelectChangeEvent<string>) => {
         const selectedValue = e.target.value;
         setFormData((prevData) => ({
@@ -78,11 +134,19 @@ const FormCreateConsultation = (props: Props) => {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            // Realiza la solicitud POST a tu API
+            // Realiza la solicitud POST a tu API para crear la consulta
             const response = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/consultas`, formData);
+            console.log(response.data.consultaId)
+            // Actualiza consultaId en sendData
+            sendData.consultaId = response.data.consultaId.toString();
+
+            console.log(sendData)
+            // Realiza la segunda solicitud POST a tu API para ejecutar el procedimiento almacenado
+            const response2 = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/allDataconsulta`, sendData);
+            console.log(sendData)
+            console.log(response2.data)
             // Configura el mensaje de éxito para el diálogo
-            setDialogMessage(response.data.mensaje);
-            
+            setDialogMessage('Se guardaron los datos Correctamente!! :) ');
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 // Si el servidor devuelve un mensaje de error, úsalo
@@ -94,16 +158,15 @@ const FormCreateConsultation = (props: Props) => {
         }
         // Abre el diálogo
         handleClickOpen();
-
-
     };
+
     return (
         <Card>
-            <CardHeader title='Registrar Consulta para Paciente' />
+            <CardHeader title='Registrar Consulta para Paciente' sx={{textAlign:'center'}}/>
             <CardContent>
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={5}>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 label='Motivo de la Consulta'
@@ -137,93 +200,233 @@ const FormCreateConsultation = (props: Props) => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        {/** 
-                        <Grid item xs={6}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                type='number'
-                                label='Edad'
-                                placeholder='35'
+                                label='Diagnostico'
+                                placeholder='Agregue aqui el Diagnostico del paciente'
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position='start'>
-                                            <Icon icon='mdi-format-list-numbers' />
+                                            <Icon icon='mdi:account-outline' />
                                         </InputAdornment>
                                     )
                                 }}
-                                name='edad'
-                                value={formData.edad}
+                                name='Diagnostico'
+                                value={examenData.Diagnostico}
                                 onChange={handleChange}
-                                required
+                            //required
                             />
                         </Grid>
-
-                        
-
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
-                                label='Direccion'
-                                placeholder='Av. Murillo #123'
+                                label='Tratamiento'
+                                placeholder='Agregue aqui el Tratamiento del paciente'
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position='start'>
-                                            <Icon icon='mdi:home' />
+                                            <Icon icon='mdi:account-outline' />
                                         </InputAdornment>
                                     )
                                 }}
-                                name='domicilio'
-                                value={formData.domicilio}
+                                name='Tratamiento'
+                                value={examenData.Tratamiento}
                                 onChange={handleChange}
-                                required
+                            //required
                             />
                         </Grid>
-
                         <Grid item xs={12}>
+                            <Typography variant='subtitle1' sx={{ mr: 2, color: 'text.primary' }}>
+                                Agregue aqui los datos del Examen General
+                            </Typography>
+                            <Divider sx={{ mt: theme => `${theme.spacing(4)} !important` }} />
+
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 type='number'
-                                label='Carnet de Identidad'
-                                placeholder='12405828'
+                                label='Frecuencia Cardiaca'
+                                placeholder='80'
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position='start'>
-                                            <Icon icon='mdi-account-multiple' />
+                                            <Icon icon='mdi:account-outline' />
                                         </InputAdornment>
                                     )
                                 }}
-                                name='carnet'
-                                value={formData.carnet}
+                                name='FrecuenciaCardiaca'
+                                value={examenData.FrecuenciaCardiaca}
                                 onChange={handleChange}
-                                required
+                            //required
                             />
                         </Grid>
-
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 type='number'
-                                label='Numero de Contacto'
-                                placeholder='70458090'
+                                label='FrecuenciaRespiratoria'
+                                placeholder='30'
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position='start'>
-                                            <Icon icon='mdi:phone' />
+                                            <Icon icon='mdi:account-outline' />
                                         </InputAdornment>
-                                    ),
-                                    inputProps: {
-                                        maxLength: 10,  // Aquí puedes establecer la longitud máxima que desees
-                                    }
+                                    )
                                 }}
-                                name='contacto'
-                                value={formData.contacto}
+                                name='FrecuenciaRespiratoria'
+                                value={examenData.FrecuenciaRespiratoria}
                                 onChange={handleChange}
-                                required
+                            //required
                             />
-                        </Grid>*/}
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                type='number'
+                                label='Temperatura'
+                                placeholder='36'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Temperatura'
+                                value={examenData.Temperatura}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label='Presion Arterial'
+                                placeholder='30'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='PresionArterial'
+                                value={examenData.PresionArterial}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                type='number'
+                                label='Talla'
+                                placeholder='165'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Talla'
+                                value={examenData.Talla}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                type='number'
+                                label='Peso'
+                                placeholder='70'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Peso'
+                                value={examenData.Peso}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant='subtitle1' sx={{ mr: 2, color: 'text.primary' }}>
+                                Agregue aqui los datos del Examen Regional
+                            </Typography>
+                            <Divider sx={{ mt: theme => `${theme.spacing(4)} !important` }} />
+
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label='Observaciones'
+                                placeholder='Escriba aqui las observaciones del Examen Regional'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Observaciones'
+                                value={examenData.Observaciones}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant='subtitle1' sx={{ mr: 2, color: 'text.primary' }}>
+                                Agregue aqui los datos del Examen Complementario
+                            </Typography>
+                            <Divider sx={{ mt: theme => `${theme.spacing(4)} !important` }} />
+
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label='Tipo Examen'
+                                placeholder='Escriba aqui el tipo de Examen Complementario'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Tipo_Examen'
+                                value={examenData.Tipo_Examen}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label='Resultados'
+                                placeholder='Escriba aqui el Resultado del Examen Complementario'
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position='start'>
+                                            <Icon icon='mdi:account-outline' />
+                                        </InputAdornment>
+                                    )
+                                }}
+                                name='Resultados'
+                                value={examenData.Resultados}
+                                onChange={handleChange}
+                            //required
+                            />
+                        </Grid>
                         <Grid item xs={12}>
                             <Button type='submit' variant='contained' size='large'>
-                                Registrar Consulta
+                                Registrar Consulta y Datos
                             </Button>
                         </Grid>
                     </Grid>
@@ -254,4 +457,3 @@ const FormCreateConsultation = (props: Props) => {
 }
 
 export default FormCreateConsultation
-
