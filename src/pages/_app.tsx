@@ -65,6 +65,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 import '../../styles/globals.css'
 import { Provider } from 'react-redux'
 import { store } from 'src/store'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -119,8 +120,10 @@ const App = (props: ExtendedAppProps) => {
   const guestGuard = Component.guestGuard ?? false
 
   const aclAbilities = Component.acl ?? defaultACLObj
-
+  
+  const queryClient = new QueryClient();
   return (
+    <QueryClientProvider client={queryClient}>
     <Provider store={store}>
       <CacheProvider value={emotionCache}>
         <Head>
@@ -157,6 +160,7 @@ const App = (props: ExtendedAppProps) => {
         </AuthProvider>
       </CacheProvider>
       </Provider>
+      </QueryClientProvider>
   )
 }
 
