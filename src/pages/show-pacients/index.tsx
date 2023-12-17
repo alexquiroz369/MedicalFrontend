@@ -3,10 +3,12 @@ import { useQuery, useQueryClient } from 'react-query';
 import io from 'socket.io-client';
 
 interface Paciente {
-  Edad: number,
+  horaLlegada: string;
+  Edad: number;
   enEspera: any;
   ID_Paciente: number;
   Nombre: string;
+  timestampLlegada: string;
   // ... otros campos
 }
 
@@ -17,6 +19,8 @@ const fetchPacientesEnEspera = async () => {
   }
   return response.json();
 };
+
+// ...
 
 const TuComponente = () => {
   const queryClient = useQueryClient();
@@ -31,7 +35,7 @@ const TuComponente = () => {
     });
 
     socket.on('enEsperaCambiado', () => {
-      // Invalida la caché del query cuando se emite el evento
+      // Realiza una nueva llamada al endpoint para obtener los datos actualizados
       queryClient.invalidateQueries('pacientesEnEspera');
     });
 
@@ -61,6 +65,7 @@ const TuComponente = () => {
             <th>Edad</th>
             {/* ... otros campos */}
             <th>En Espera</th>
+            <th>Hora de Llegada</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +76,7 @@ const TuComponente = () => {
               <td>{paciente.Edad}</td>
               {/* ... otros campos */}
               <td>{paciente.enEspera ? 'Sí' : 'No'}</td>
+              <td>{paciente.horaLlegada}</td>
             </tr>
           ))}
         </tbody>

@@ -5,7 +5,7 @@ const navigation = (): VerticalNavItemsType => {
   return [
     {
       title: 'inicio',
-      path: '/home',
+      path: '/queuepacients',
       icon: 'mdi:home-outline',
     },
     {

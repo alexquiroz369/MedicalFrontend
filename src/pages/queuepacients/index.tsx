@@ -53,6 +53,8 @@ import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/t
 import TableHeader from 'src/views/apps/user/list/TableHeader'
 import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
 import router from 'next/router'
+import { io } from 'socket.io-client'
+import { useQuery, useQueryClient } from 'react-query'
 
 interface UserRoleType {
   [key: string]: { icon: string; color: string }
@@ -271,6 +273,13 @@ const columns = [
     renderCell: ({ row }: CellType) => <RowOptions id={row.ID_Paciente} />
   }
 ]
+const fetchPacientesEnEspera = async () => {
+  const response = await fetch('http://localhost:3000/paciente-en-espera');
+  if (!response.ok) {
+    throw new Error(`Error al obtener pacientes en espera: ${response.statusText}`);
+  }
+  return response.json();
+}
 
 const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) => {
   // ** State
@@ -285,22 +294,9 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   const [pageSize, setPageSize] = useState<number>(10)
   const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
 
-  // ** Hooks
-  const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.user)
-  const [filteredPatients, setFilteredPatients] = useState<UsersType[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Fetch patient data from API
-    const fetchPatients = async () => {
-      const url = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes`;
-      const response = await axios.get(url);
-      const data = response.data;
-      setPatients(data);
-    };
-  
-    fetchPatients();
-  }, []);
+  const { data: pacientesEnEspera, isError, isLoading } = useQuery('pacientesEnEspera', fetchPacientesEnEspera);
 
   useEffect(() => {
     const socket = io('http://localhost:3000', { transports: ['websocket'] });
@@ -309,19 +305,9 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
       console.log('Conexión establecida con el servidor de sockets');
     });
 
-    socket.on('enEsperaCambiado', (data) => {
-      // Actualiza la lista de pacientes con los nuevos datos recibidos
-      setPatients((prevPatients) => {
-        const updatedPatients = prevPatients.map((patient) =>
-          patient.ID_Paciente === data.pacienteId ? { ...patient, enEspera: data.enEspera } : patient
-        );
-
-        // Filtra los pacientes nuevamente con el filtro actual
-        const filteredUpdatedPatients = filterPatients(value, updatedPatients);
-        setFilteredPatients(filteredUpdatedPatients);
-
-        return updatedPatients;
-      });
+    socket.on('enEsperaCambiado', () => {
+      // Realiza una nueva llamada al endpoint para obtener los datos actualizados
+      queryClient.invalidateQueries('pacientesEnEspera');
     });
 
     // Cierra la conexión cuando el componente se desmonte
@@ -329,115 +315,31 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
       socket.disconnect();
       console.log('Conexión cerrada');
     };
-  }, [value]);
+  }, [queryClient]);
 
+  if (isLoading) {
+    return <div>Cargando...</div>;
+  }
 
+  if (isError || !pacientesEnEspera) {
+    return <div>Error al cargar datos</div>;
+  }
 
-  const handleFilter = useCallback((val: string) => {
-    setValue(val)
-  }, [])
-
-  const handleRoleChange = useCallback((e: SelectChangeEvent) => {
-    setRole(e.target.value)
-  }, [])
-
-  const handlePlanChange = useCallback((e: SelectChangeEvent) => {
-    setPlan(e.target.value)
-  }, [])
-
-  const handleStatusChange = useCallback((e: SelectChangeEvent) => {
-    setStatus(e.target.value)
-  }, [])
-
+  const columns = [
+    { field: 'ID_Paciente', headerName: 'ID_Paciente', flex: 1 },
+    { field: 'Nombre', headerName: 'Nombre', flex: 1 },
+    { field: 'Edad', headerName: 'Edad', flex: 1 },
+    // ... otros campos
+    { field: 'enEspera', headerName: 'En Espera', flex: 1 },
+    { field: 'horaLlegada', headerName: 'Hora de Llegada', flex: 1 },
+  ];
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-
+  
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        {apiData && (
-          <Grid container spacing={6}>
-            {apiData.statsHorizontal.map((item: CardStatsHorizontalProps, index: number) => {
-              return (
-                <Grid item xs={12} md={3} sm={6} key={index}>
-                  <CardStatisticsHorizontal {...item} icon={<Icon icon={item.icon as string} />} />
-                </Grid>
-              )
-            })}
-          </Grid>
-        )}
-      </Grid>
-      <Grid item xs={12}>
         <Card>
           <CardHeader title='Pacientes Registrados en el Sistema' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
-          {/*
-          <CardContent>
-            
-            <Grid container spacing={6}>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                 
-                  <InputLabel id='role-select'>Select Role</InputLabel>
-                  <Select
-                    fullWidth
-                    value={role}
-                    id='select-role'
-                    label='Select Role'
-                    labelId='role-select'
-                    onChange={handleRoleChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='admin'>Admin</MenuItem>
-                    <MenuItem value='author'>Author</MenuItem>
-                    <MenuItem value='editor'>Editor</MenuItem>
-                    <MenuItem value='maintainer'>Maintainer</MenuItem>
-                    <MenuItem value='subscriber'>Subscriber</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='plan-select'>Select Plan</InputLabel>
-                  <Select
-                    fullWidth
-                    value={plan}
-                    id='select-plan'
-                    label='Select Plan'
-                    labelId='plan-select'
-                    onChange={handlePlanChange}
-                    inputProps={{ placeholder: 'Select Plan' }}
-                  >
-                    <MenuItem value=''>Select Plan</MenuItem>
-                    <MenuItem value='basic'>Basic</MenuItem>
-                    <MenuItem value='company'>Company</MenuItem>
-                    <MenuItem value='enterprise'>Enterprise</MenuItem>
-                    <MenuItem value='team'>Team</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-               
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='status-select'>Select Status</InputLabel>
-                  <Select
-                    fullWidth
-                    value={status}
-                    id='select-status'
-                    label='Select Status'
-                    labelId='status-select'
-                    onChange={handleStatusChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='pending'>Pending</MenuItem>
-                    <MenuItem value='active'>Active</MenuItem>
-                    <MenuItem value='inactive'>Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </CardContent>
-        */}
           <Divider />
           <Grid item xs={12}>
             <TableHeader value={value} handleFilter={setValue} toggle={toggleAddUserDrawer} />
@@ -446,7 +348,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
             <DataGrid
               getRowId={(row) => row.ID_Paciente}
               autoHeight
-              rows={filteredPatients}
+              rows={pacientesEnEspera}
               columns={columns}
               checkboxSelection
               pageSize={pageSize}
@@ -458,19 +360,18 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
           </Grid>
         </Card>
       </Grid>
-
       <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
     </Grid>
   )
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get('/cards/statistics')
-  const apiData: CardStatsType = res.data
+ // const res = await axios.get('/cards/statistics')
+  //const apiData: CardStatsType = res.data
 
   return {
     props: {
-      apiData
+      //apiData
     }
   }
 }
