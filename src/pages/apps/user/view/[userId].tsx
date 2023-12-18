@@ -1,5 +1,5 @@
 // ** React Imports
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -42,6 +42,7 @@ import FormPacientData from 'src/views/forms/form-layouts/FormPacientData'
 import React from 'react'
 import { TransitionProps } from '@mui/material/transitions';
 import { Slide } from '@mui/material'
+import socket from 'src/utils/socket'
 
 interface ColorsType {
   [key: string]: ThemeColor
@@ -98,6 +99,13 @@ type Props = {
   user: UsersType | undefined
   pacient: PacientType | undefined
 }
+
+type PacienteEstado = {
+  ID_Paciente: number;
+  enEspera: boolean;
+  // ... otros campos
+};
+
 const UserView = () => {
   const [openEdit, setOpenEdit] = useState<boolean>(false)
   const [openPlans, setOpenPlans] = useState<boolean>(false)
@@ -138,6 +146,9 @@ const UserView = () => {
     active: false,
     contacto: null,
   });
+  const [statePacient, setStatePacient] = useState({
+    enEspera: false,
+  })
 
   // Handle Edit dialog
   const handleEditClickOpen = () => setOpenEdit(true)
@@ -151,13 +162,13 @@ const UserView = () => {
   const [isRequestSuccessful, setIsRequestSuccessful] = useState(false);
   const [open, setOpen] = React.useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
+  const [patient, setPatient] = useState(null);
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
-    console.log('cerrado');
     location.reload();
     setOpen(false);
   };
@@ -191,9 +202,12 @@ const UserView = () => {
               Sexo: pacient.Sexo || '',
               Domicilio: pacient.Domicilio || '',
               Carnet: pacient.Carnet || '',
-              active: pacient.active || 0,
+              active: pacient.active || 0, 
               contacto: pacient.contacto || null,
             });
+            setStatePacient({
+              enEspera: Boolean(pacient.enEspera),
+            })
           } else {
             console.log('Usuario no encontrado');
           }
@@ -254,7 +268,7 @@ const UserView = () => {
     sexo: currentUserPacient?.Sexo || '',
     domicilio: currentUserPacient?.Domicilio || '',
     carnet: currentUserPacient?.Carnet || '',
-    active: currentUserPacient?.active || 0,
+    active: currentUserPacient?.active || false,
     contacto: currentUserPacient?.contacto || null,
     fechaConsulta: currentUser?.[0]?.Fecha_Consulta || '',
     motivoConsulta: currentUser?.[0]?.Motivo_Consulta || '',
@@ -306,11 +320,14 @@ const UserView = () => {
   const handleFormSubmit = async () => {
     try {
       // Realiza la llamada a la API para enviar el formulario
+      
       const response = await axios.put(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/${userId}`, formDataPacient);
+      
       setDialogMessage("Datos Actualizados Correctamente :) ");
       setOpenEdit(false);
 
     } catch (error) {
+      
       if (axios.isAxiosError(error) && error.response) {
         // Si el servidor devuelve un mensaje de error, úsalo
         handleEditClose();
@@ -323,6 +340,32 @@ const UserView = () => {
     }
     handleClickOpen();
   }
+
+
+  const handleToggleEnEspera = async () => {
+    try {
+      const response = await axios.put(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/togglee/${userId}`);
+      const updatedPatient = response.data;
+  
+      // Actualiza el estado del paciente directamente con el nuevo valor de enEspera
+      setStatePacient((prevData) => ({
+        ...prevData,
+        enEspera: updatedPatient.enEspera,
+      }));
+  
+      // Resto de la lógica...
+  
+      // Emitir el evento al socket solo si el estado de enEspera ha cambiado
+      if (updatedPatient.enEspera !== statePacient.enEspera) {
+        socket.emit('enEsperaCambiado', { pacienteId: updatedPatient.ID_Paciente, enEspera: updatedPatient.enEspera });
+      }
+    } catch (error) {
+      console.error('Error al actualizar el estado de espera:', error);
+    }
+  };
+  
+  // Resto de tu componente...
+
 
   return (
     <Grid container spacing={6}>
@@ -419,15 +462,20 @@ const UserView = () => {
             <Button variant='contained' sx={{ mr: 2 }} onClick={() => setOpenEdit(true)}>
               Editar
             </Button>
-            <Button variant='contained' onClick={() => Router.push(`/create-consultation?userId=${userId}`)}>
+            <Button variant='contained' onClick={() => Router.push(`/create-consultation?userId=${userId}&enEspera=${statePacient.enEspera}`)}>
               Crear Consulta
             </Button>
+            {/** 
             <Button color='error' variant='outlined' onClick={() => setSuspendDialogOpen(true)}>
               Suspender
-            </Button>
+            </Button>*/}
             <Button variant='contained' onClick={() => Router.push(`/other-consultation?userId=${userId}`)}>
               Otras Consultas
             </Button>
+            <Button color='primary' variant='outlined' onClick={handleToggleEnEspera}>
+              {statePacient.enEspera ? 'Quitar de Espera' : 'Poner en Espera'}
+            </Button>
+
           </CardActions>
 
           {isRequestSuccessful && <FormPacientData datos={datosPaciente}></FormPacientData>}
@@ -478,8 +526,8 @@ const UserView = () => {
                         id='user-view-status'
                         labelId='user-view-status-label'
                       >
-                        <MenuItem value='Masculino'>Masculino</MenuItem>
-                        <MenuItem value='Femenino'>Femenino</MenuItem>
+                        <MenuItem value='MASCULINO'>MASCULINO</MenuItem>
+                        <MenuItem value='FEMENINO'>FEMENINO</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>

@@ -23,9 +23,9 @@ const ACLPage = () => {
     <Grid container spacing={6}>
       <Grid item md={12} xs={12}>
         <Card>
-          <CardHeader title='Bienvenido Administrador!!' />
+          <CardHeader title='Gestionar Pacientes Registrados' />
           <CardContent>
-            <Typography sx={{ mb: 4 }}>Aqui puede ver a todos los pacientes del sistema y su informacion</Typography>
+            <Typography sx={{ mb: 4 }}>Aqui puede gestionar a los pacientes del sistema y su informacion</Typography>
           </CardContent>
         </Card>
       </Grid>

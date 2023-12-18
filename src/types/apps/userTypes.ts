@@ -2,6 +2,7 @@
 import { ThemeColor } from 'src/@core/layouts/types'
 
 export type UsersType = {
+  horaLlegada: string,
   ID_Paciente: number
   Nombre: string
   Edad: number

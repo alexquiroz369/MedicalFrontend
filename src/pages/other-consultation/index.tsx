@@ -47,7 +47,7 @@ const ConsultationManagement = () => {
 
     const fetchData = async (newSelectedConsultation: string) => {
         try {
-            const response = await axios.get(`http://localhost:3000/database/alldata/${userId}/${newSelectedConsultation}`);
+            const response = await axios.get(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/database/alldata/${userId}/${newSelectedConsultation}`);
             setConsultaDetails(response.data); // Ajusta esta línea según la estructura real de tu respuesta
         } catch (error) {
             console.error('Error al obtener los detalles de la consulta:', error);

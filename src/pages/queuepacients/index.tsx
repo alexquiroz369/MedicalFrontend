@@ -68,6 +68,8 @@ interface UserStatusType {
 const userRoleObj: UserRoleType = {
   Masculino: { icon: 'mdi-gender-male', color: '#007bff' },
   Femenino: { icon: 'mdi-gender-female', color: '#ff66ff' },
+  MASCULINO: { icon: 'mdi-gender-male', color: '#007bff' },
+  FEMENINO: { icon: 'mdi-gender-female', color: '#ff66ff' },
   editor: { icon: 'mdi:pencil-outline', color: 'info.main' },
   maintainer: { icon: 'mdi:chart-donut', color: 'success.main' },
   subscriber: { icon: 'mdi:account-outline', color: 'primary.main' }
@@ -192,7 +194,7 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink  href={`/apps/user/view/${row.ID_Paciente}`} sx={{ fontSize: '17px' }}>{Nombre}</StyledLink>
+            <StyledLink href={`/apps/user/view/${row.ID_Paciente}`} sx={{ fontSize: '17px' }}>{Nombre}</StyledLink>
             <Typography sx={{ fontSize: '12px' }} noWrap variant='caption'>
               {row.Domicilio}
             </Typography>
@@ -266,15 +268,25 @@ const columns = [
   },
   {
     flex: 0.1,
-    minWidth: 90,
-    sortable: false,
-    field: 'actions',
-    headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions id={row.ID_Paciente} />
-  }
+    minWidth: 110,
+    maxWidth: 150,
+    field: 'Hora de Llegada',
+    headerName: 'Hora de Llegada',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.horaLlegada}
+          color={row.active ? userStatusObj.activeColor : userStatusObj.inactiveColor}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '20px' } }}
+        />
+      )
+    }
+  },
 ]
 const fetchPacientesEnEspera = async () => {
-  const response = await fetch('http://localhost:3000/paciente-en-espera');
+  const response = await fetch(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/paciente-en-espera`);
   if (!response.ok) {
     throw new Error(`Error al obtener pacientes en espera: ${response.statusText}`);
   }
@@ -299,7 +311,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   const { data: pacientesEnEspera, isError, isLoading } = useQuery('pacientesEnEspera', fetchPacientesEnEspera);
 
   useEffect(() => {
-    const socket = io('http://localhost:3000', { transports: ['websocket'] });
+    const socket = io(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}`, { transports: ['websocket'] });
 
     socket.on('connect', () => {
       console.log('Conexión establecida con el servidor de sockets');
@@ -324,22 +336,36 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   if (isError || !pacientesEnEspera) {
     return <div>Error al cargar datos</div>;
   }
-
-  const columns = [
-    { field: 'ID_Paciente', headerName: 'ID_Paciente', flex: 1 },
-    { field: 'Nombre', headerName: 'Nombre', flex: 1 },
-    { field: 'Edad', headerName: 'Edad', flex: 1 },
-    // ... otros campos
-    { field: 'enEspera', headerName: 'En Espera', flex: 1 },
-    { field: 'horaLlegada', headerName: 'Hora de Llegada', flex: 1 },
-  ];
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-  
+
   return (
+    <>
+    <Grid item md={12} xs={12}>
+    <Card>
+      <CardHeader title='Bienvenido Administrador!!' />
+      <CardContent>
+        <Typography sx={{ mb: 4 }}>Aqui puede ver a todos los pacientes que estan en espera de ser atendidos por orden de llegada.</Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+  
     <Grid container spacing={6}>
       <Grid item xs={12}>
+        {apiData && (
+          <Grid container spacing={6}>
+            {apiData.statsHorizontal.map((item: CardStatsHorizontalProps, index: number) => {
+              return (
+                <Grid item xs={12} md={3} sm={6} key={index}>
+                  <CardStatisticsHorizontal {...item} icon={<Icon icon={item.icon as string} />} />
+                </Grid>
+              )
+            })}
+          </Grid>
+        )}
+      </Grid>
+      <Grid item xs={12}>
         <Card>
-          <CardHeader title='Pacientes Registrados en el Sistema' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
+          <CardHeader title='Pacientes en Fila' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
           <Divider />
           <Grid item xs={12}>
             <TableHeader value={value} handleFilter={setValue} toggle={toggleAddUserDrawer} />
@@ -361,12 +387,12 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
         </Card>
       </Grid>
       <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
-    </Grid>
+    </Grid></>
   )
 }
 
 export const getStaticProps: GetStaticProps = async () => {
- // const res = await axios.get('/cards/statistics')
+  // const res = await axios.get('/cards/statistics')
   //const apiData: CardStatsType = res.data
 
   return {

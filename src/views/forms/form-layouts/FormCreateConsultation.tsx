@@ -28,10 +28,11 @@ const Transition = React.forwardRef(function Transition(
 
 type Props = {
     userId: any
+    enEspera: string,
 }
 const FormCreateConsultation = (props: Props) => {
     const [open, setOpen] = React.useState(false);
-    const { userId } = props
+    const { userId, enEspera } = props
     const handleClickOpen = () => {
         setOpen(true);
     };
@@ -135,15 +136,17 @@ const FormCreateConsultation = (props: Props) => {
         try {
             // Realiza la solicitud POST a tu API para crear la consulta
             const response = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/consultas`, formData);
-            console.log(response.data.consultaId)
             // Actualiza consultaId en sendData
             sendData.consultaId = response.data.consultaId.toString();
-
-            console.log(sendData)
             // Realiza la segunda solicitud POST a tu API para ejecutar el procedimiento almacenado
             const response2 = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/allDataconsulta`, sendData);
-            console.log(sendData)
-            console.log(response2.data)
+            // Ahora, quita al paciente de la cola
+            const enEsperaBoolean = enEspera === 'true';
+
+            if (enEsperaBoolean) {
+                const response3 = await axios.put(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes/togglee/${userId}`);
+                // Puedes agregar lógica adicional si es necesario con la respuesta de la tercera solicitud
+            }
             // Configura el mensaje de éxito para el diálogo
             setDialogMessage('Se guardaron los datos Correctamente!! :) ');
         } catch (error) {
@@ -161,7 +164,7 @@ const FormCreateConsultation = (props: Props) => {
 
     return (
         <Card>
-            <CardHeader title='Registrar Consulta para Paciente' sx={{textAlign:'center'}}/>
+            <CardHeader title='Registrar Consulta para Paciente' sx={{ textAlign: 'center' }} />
             <CardContent>
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={5}>

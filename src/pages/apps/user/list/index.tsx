@@ -66,6 +66,8 @@ interface UserStatusType {
 const userRoleObj: UserRoleType = {
   Masculino: { icon: 'mdi-gender-male', color: '#007bff' },
   Femenino: { icon: 'mdi-gender-female', color: '#ff66ff' },
+  MASCULINO: { icon: 'mdi-gender-male', color: '#007bff' },
+  FEMENINO: { icon: 'mdi-gender-female', color: '#ff66ff' },
   editor: { icon: 'mdi:pencil-outline', color: 'info.main' },
   maintainer: { icon: 'mdi:chart-donut', color: 'success.main' },
   subscriber: { icon: 'mdi:account-outline', color: 'primary.main' }
@@ -303,33 +305,19 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   }, []);
 
   useEffect(() => {
-    const socket = io('http://localhost:3000', { transports: ['websocket'] });
+    const filteredPatients = filterPatients(value, patients);
+    setFilteredPatients(filteredPatients);
+  }, [value, patients]);
 
-    socket.on('connect', () => {
-      console.log('Conexión establecida con el servidor de sockets');
+  const filterPatients = (searchValue: string, patients: UsersType[]): UsersType[] => {
+    if (!searchValue) {
+      return patients;
+    }
+
+    return patients.filter((patient) => {
+      return patient.Nombre.toLowerCase().includes(searchValue.toLowerCase());
     });
-
-    socket.on('enEsperaCambiado', (data) => {
-      // Actualiza la lista de pacientes con los nuevos datos recibidos
-      setPatients((prevPatients) => {
-        const updatedPatients = prevPatients.map((patient) =>
-          patient.ID_Paciente === data.pacienteId ? { ...patient, enEspera: data.enEspera } : patient
-        );
-
-        // Filtra los pacientes nuevamente con el filtro actual
-        const filteredUpdatedPatients = filterPatients(value, updatedPatients);
-        setFilteredPatients(filteredUpdatedPatients);
-
-        return updatedPatients;
-      });
-    });
-
-    // Cierra la conexión cuando el componente se desmonte
-    return () => {
-      socket.disconnect();
-      console.log('Conexión cerrada');
-    };
-  }, [value]);
+  };
 
 
 
@@ -369,75 +357,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
       <Grid item xs={12}>
         <Card>
           <CardHeader title='Pacientes Registrados en el Sistema' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
-          {/*
-          <CardContent>
-            
-            <Grid container spacing={6}>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                 
-                  <InputLabel id='role-select'>Select Role</InputLabel>
-                  <Select
-                    fullWidth
-                    value={role}
-                    id='select-role'
-                    label='Select Role'
-                    labelId='role-select'
-                    onChange={handleRoleChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='admin'>Admin</MenuItem>
-                    <MenuItem value='author'>Author</MenuItem>
-                    <MenuItem value='editor'>Editor</MenuItem>
-                    <MenuItem value='maintainer'>Maintainer</MenuItem>
-                    <MenuItem value='subscriber'>Subscriber</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='plan-select'>Select Plan</InputLabel>
-                  <Select
-                    fullWidth
-                    value={plan}
-                    id='select-plan'
-                    label='Select Plan'
-                    labelId='plan-select'
-                    onChange={handlePlanChange}
-                    inputProps={{ placeholder: 'Select Plan' }}
-                  >
-                    <MenuItem value=''>Select Plan</MenuItem>
-                    <MenuItem value='basic'>Basic</MenuItem>
-                    <MenuItem value='company'>Company</MenuItem>
-                    <MenuItem value='enterprise'>Enterprise</MenuItem>
-                    <MenuItem value='team'>Team</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-               
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='status-select'>Select Status</InputLabel>
-                  <Select
-                    fullWidth
-                    value={status}
-                    id='select-status'
-                    label='Select Status'
-                    labelId='status-select'
-                    onChange={handleStatusChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='pending'>Pending</MenuItem>
-                    <MenuItem value='active'>Active</MenuItem>
-                    <MenuItem value='inactive'>Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </CardContent>
-        */}
+          
           <Divider />
           <Grid item xs={12}>
             <TableHeader value={value} handleFilter={setValue} toggle={toggleAddUserDrawer} />

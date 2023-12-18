@@ -4,11 +4,11 @@ import FormCreateConsultation from 'src/views/forms/form-layouts/FormCreateConsu
 
 const CreateConsultation = () => {
   const router = useRouter()
-  const userId = router.query.userId
+  const {userId, enEspera} = router.query
 
   return (
     <DatePickerWrapper>
-      <FormCreateConsultation userId={userId} />
+      <FormCreateConsultation userId={userId as string} enEspera={enEspera as string} />
     </DatePickerWrapper>
   )
 }

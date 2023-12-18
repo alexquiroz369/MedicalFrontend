@@ -160,7 +160,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     //dispatch(addUser({ ...data, role, currentPlan: sexo }))
     toggle()
     //reset()
-    console.log(formattedFormData)
+    
     try {
       // Realiza la solicitud POST a tu API
       const response = await axios.post(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/pacientes`, formattedFormData);

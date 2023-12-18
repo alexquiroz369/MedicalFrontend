@@ -13,7 +13,7 @@ interface Paciente {
 }
 
 const fetchPacientesEnEspera = async () => {
-  const response = await fetch('http://localhost:3000/paciente-en-espera');
+  const response = await fetch(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}/paciente-en-espera`);
   if (!response.ok) {
     throw new Error(`Error al obtener pacientes en espera: ${response.statusText}`);
   }
@@ -28,7 +28,7 @@ const TuComponente = () => {
   const { data: pacientesEnEspera, isError, isLoading } = useQuery('pacientesEnEspera', fetchPacientesEnEspera);
 
   useEffect(() => {
-    const socket = io('http://localhost:3000', { transports: ['websocket'] });
+    const socket = io(`http://${process.env.NEXT_PUBLIC_SERVER_HOST}`, { transports: ['websocket'] });
 
     socket.on('connect', () => {
       console.log('Conexión establecida con el servidor de sockets');

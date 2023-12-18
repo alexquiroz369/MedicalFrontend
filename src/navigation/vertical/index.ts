@@ -4,32 +4,21 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 const navigation = (): VerticalNavItemsType => {
   return [
     {
-      title: 'inicio',
+      title: 'Pacientes en Cola',
       path: '/queuepacients',
       icon: 'mdi:home-outline',
     },
     {
-      title: 'Registrar Nuevo Paciente',
+      title: 'Registrar Nuevos Pacientes',
       path: '/create-pacient',
       icon: 'mdi:human',
     },
     {
-      title: 'Ver Pacientes',
+      title: 'Gestionar Pacientes',
       path: '/test',
       icon: 'mdi:human-male-female',
     },
-    {
-      title: 'User list',
-      path: '/show-pacients',
-      icon: 'mdi:email-outline',
-    },
-    {
-      path: '/acl',
-      action: 'read',
-      subject: 'acl-page',
-      title: 'Access Control',
-      icon: 'mdi:shield-outline',
-    }
+
   ]
 }
 
