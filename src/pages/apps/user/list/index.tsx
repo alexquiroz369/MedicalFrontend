@@ -385,12 +385,19 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get('/cards/statistics')
-  const apiData: CardStatsType = res.data
+  let apiData: CardStatsType;
+
+  try {
+    const res = await axios.get('/cards/statistics');
+    apiData = res.data;
+  } catch (error) {
+    console.error(error);
+    // Proporciona un valor predeterminado o maneja el error de alguna otra manera
+  }
 
   return {
     props: {
-      apiData
+      
     }
   }
 }
